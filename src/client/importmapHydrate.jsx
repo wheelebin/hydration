@@ -38,10 +38,29 @@ const deserialiseItems = async (item) => {
 };
 
 const hydrate = async () => {
-  const elem = document.getElementById("LIST");
-  const Node = await deserialiseItems(window.__STATE__);
+  console.log("Hydrating...");
 
-  ReactDomClient.hydrateRoot(elem, Node);
+  // Get all states
+  const states = Object.entries(window)
+    .map(([key, value]) => {
+      if (key.startsWith("__STATE__")) {
+        const [entry] = Object.entries(value);
+        return entry;
+      }
+    })
+    .filter((state) => state !== undefined);
+
+  // Hydrate all states
+  states.forEach(async (stateEntry) => {
+    const [key, state] = stateEntry;
+    const elem = document.getElementById(key);
+    const Node = await deserialiseItems(state);
+
+    ReactDomClient.hydrateRoot(elem, Node);
+  });
+
+  await Promise.all(states);
+  console.log("Hydrated!");
 };
 
 hydrate();

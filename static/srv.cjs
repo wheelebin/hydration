@@ -40165,11 +40165,11 @@ var List_default = List;
 
 // src/shared/Card.jsx
 var import_react3 = __toESM(require_react(), 1);
-var Card = ({ id }) => {
+var Card = ({ id, children }) => {
   console.log("Hello from Card.jsx");
   const context = import_react3.default.useContext(MyContext_default);
   const handleOnClick = () => console.log(context?.name);
-  return /* @__PURE__ */ import_react3.default.createElement("div", { internalid: id }, /* @__PURE__ */ import_react3.default.createElement("h1", null, "A card"), /* @__PURE__ */ import_react3.default.createElement("button", { onClick: handleOnClick }, "Click me!"));
+  return /* @__PURE__ */ import_react3.default.createElement("div", { internalid: id }, /* @__PURE__ */ import_react3.default.createElement("h1", null, children), /* @__PURE__ */ import_react3.default.createElement("button", { onClick: handleOnClick }, "Click me!"));
 };
 var Card_default = Card;
 
@@ -46434,8 +46434,6 @@ var App = ({ state, children }) => {
         dangerouslySetInnerHTML: { __html: JSON.stringify(getImportMap()) }
       }
     ),
-    // State used to rehydrate the components on the client
-    /* @__PURE__ */ import_react4.default.createElement("script", { dangerouslySetInnerHTML: { __html: state } }),
     // Client script that hydrates the components
     /* @__PURE__ */ import_react4.default.createElement("script", { src: "client/importmapHydrate.js", type: "module", defer: true })
   ];
@@ -46454,14 +46452,25 @@ var App = ({ state, children }) => {
     children
   ));
 };
+var Hydrate = ({ children }) => {
+  const randomId = Math.random().toString(36).substring(7);
+  const state = {
+    [randomId]: children
+  };
+  return /* @__PURE__ */ import_react4.default.createElement(import_react4.default.Fragment, null, /* @__PURE__ */ import_react4.default.createElement(
+    "script",
+    {
+      dangerouslySetInnerHTML: {
+        __html: `window.__STATE__${randomId}__ = ${serialize(state)}`
+      }
+    }
+  ), /* @__PURE__ */ import_react4.default.createElement("div", { id: randomId }, children));
+};
 var app = (0, import_express.default)();
 app.use(import_express.default.static("static"));
 app.get("/", (req, res) => {
-  const itemElems = mockItems.map((item) => /* @__PURE__ */ import_react4.default.createElement(Card_default, { id: item.id, key: item.id }, item.name));
-  const Listy = /* @__PURE__ */ import_react4.default.createElement(List_default, null, itemElems);
-  const state = `window.__STATE__ = ${serialize(Listy)}`;
   const markup = import_server.default.renderToString(
-    /* @__PURE__ */ import_react4.default.createElement(App, { state }, /* @__PURE__ */ import_react4.default.createElement("div", { id: "LIST" }, Listy))
+    /* @__PURE__ */ import_react4.default.createElement(App, null, /* @__PURE__ */ import_react4.default.createElement(Hydrate, null, /* @__PURE__ */ import_react4.default.createElement(List_default, null, mockItems.map((item) => /* @__PURE__ */ import_react4.default.createElement(Card_default, { id: item.id, key: item.id }, item.name)))), /* @__PURE__ */ import_react4.default.createElement("h1", null, "The bellow is not hydrated!"), /* @__PURE__ */ import_react4.default.createElement("h3", null, "Since it's not wrapped in the hydrate tag."), /* @__PURE__ */ import_react4.default.createElement(List_default, null, mockItems.map((item) => /* @__PURE__ */ import_react4.default.createElement(Card_default, { id: item.id, key: item.id }, item.name))))
   );
   res.send(markup);
 });

@@ -39,9 +39,6 @@ const App = ({ state, children }) => {
       dangerouslySetInnerHTML={{ __html: JSON.stringify(getImportMap()) }}
     />,
 
-    // State used to rehydrate the components on the client
-    <script dangerouslySetInnerHTML={{ __html: state }} />,
-
     // Client script that hydrates the components
     <script src="client/importmapHydrate.js" type="module" defer />,
   ];
@@ -68,31 +65,51 @@ const App = ({ state, children }) => {
   );
 };
 
-const Hydrate = ({ children }) => {};
+const Hydrate = ({ children }) => {
+  const randomId = Math.random().toString(36).substring(7);
+  const state = {
+    [randomId]: children,
+  };
+
+  return (
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.__STATE__${randomId}__ = ${serialize(state)}`,
+        }}
+      />
+      {/* Hydrated component need root DOM node */}
+      <div id={randomId}>{children}</div>
+    </>
+  );
+};
 
 const app = express();
 
 app.use(express.static("static"));
 
 app.get("/", (req, res) => {
-  // Create a list of Card components
-  const itemElems = mockItems.map((item) => (
-    <Card id={item.id} key={item.id}>
-      {item.name}
-    </Card>
-  ));
-
-  // Create a List component with the Card components
-  const Listy = <List>{itemElems}</List>;
-
-  // Serialize the List component, so it can be used to rehydrate the component
-  // on the client.
-  const state = `window.__STATE__ = ${serialize(Listy)}`;
-
   const markup = ReactDomServer.renderToString(
-    <App state={state}>
-      {/* Hydrated component need root DOM node */}
-      <div id="LIST">{Listy}</div>
+    <App>
+      <Hydrate>
+        <List>
+          {mockItems.map((item) => (
+            <Card id={item.id} key={item.id}>
+              {item.name}
+            </Card>
+          ))}
+        </List>
+      </Hydrate>
+
+      <h1>The bellow is not hydrated!</h1>
+      <h3>Since it's not wrapped in the hydrate tag.</h3>
+      <List>
+        {mockItems.map((item) => (
+          <Card id={item.id} key={item.id}>
+            {item.name}
+          </Card>
+        ))}
+      </List>
     </App>
   );
   res.send(markup);
