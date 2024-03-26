@@ -1,7 +1,9 @@
 import { context } from "esbuild";
+import { glob } from "glob";
+import { esbuildPluginFilePathExtensions } from "esbuild-plugin-file-path-extensions";
 
 // Build the server
-const watchServer = async () => {
+(async () => {
   const ctx = await context({
     entryPoints: ["src/server/index.jsx"],
     bundle: true,
@@ -12,25 +14,45 @@ const watchServer = async () => {
   });
 
   await ctx.watch();
-  console.log("Watching for changes...");
-};
-watchServer();
+  console.log("Server watching for changes...");
+})();
 
-const watchClient = async () => {
+// Build the client
+(async () => {
   const ctx = await context({
-    entryPoints: [
-      "src/server/importmapHydrate.jsx",
-      "src/server/Card.jsx",
-      "src/server/List.jsx",
-    ],
+    entryPoints: ["src/client/importmapHydrate.jsx"],
     bundle: false,
-    outdir: "static",
+    outdir: "static/client",
     platform: "browser",
     format: "esm",
   });
 
   await ctx.watch();
-  console.log("Watching for changes...");
-};
+  console.log("Client watching for changes...");
+})();
 
-watchClient();
+// Build the shared
+(async () => {
+  let entryPoints = await glob("./src/shared/**/*.*");
+
+  // Regex filter to only apply plugin to import statements towards internal files
+  const filter = /^\.{1,2}(\/[\w-]+)+$/;
+
+  const ctx = await context({
+    entryPoints,
+    bundle: true,
+    outdir: "static/shared",
+    platform: "browser",
+    format: "esm",
+    plugins: [
+      esbuildPluginFilePathExtensions({
+        cjsExtension: "js",
+        filter,
+      }),
+    ],
+    external: ["react", "react-dom"],
+  });
+
+  await ctx.watch();
+  console.log("Shared watching for changes...");
+})();

@@ -2,8 +2,10 @@ import express from "express";
 import ReactDomServer from "react-dom/server";
 import React from "react";
 
-import List from "./List.jsx";
-import Card from "./Card.jsx";
+import List from "../shared/List.jsx";
+import Card from "../shared/Card.jsx";
+
+import { getImportMap } from "./importmap.js";
 
 const mockItems = [
   { name: "Item 1", id: 1 },
@@ -29,27 +31,26 @@ const serialize = (comp) => {
 };
 
 const App = ({ state, children }) => {
-  // Import map used by client to hydrate components
-  // Dynamic imports are used to load the components and their dependencies.
-  const importmap = {
-    imports: {
-      react: "https://esm.sh/react@18.2.0",
-      "react-dom": "https://esm.sh/react-dom@18.2.0",
-      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-      Card: "http://localhost:3000/Card.js",
-      List: "http://localhost:3000/List.js",
-    },
-  };
+  const scripts = [
+    // Import map used by client to hydrate components
+    // Dynamic imports are used to load the components and their dependencies.
+    <script
+      type="importmap"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(getImportMap()) }}
+    />,
+
+    // State used to rehydrate the components on the client
+    <script dangerouslySetInnerHTML={{ __html: state }} />,
+
+    // Client script that hydrates the components
+    <script src="client/importmapHydrate.js" type="module" defer />,
+  ];
 
   return (
     <html>
       <head>
-        <script
-          type="importmap"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(importmap) }}
-        />
-        <script dangerouslySetInnerHTML={{ __html: state }} />
-        <title>Card</title>
+        {...scripts}
+        <title>App</title>
       </head>
       <body
         style={{
@@ -62,11 +63,12 @@ const App = ({ state, children }) => {
         }}
       >
         {children}
-        <script src="importmapHydrate.js" type="module" defer />
       </body>
     </html>
   );
 };
+
+const Hydrate = ({ children }) => {};
 
 const app = express();
 
