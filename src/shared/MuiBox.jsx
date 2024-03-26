@@ -28,7 +28,7 @@ const MuiBox = () => {
           console.log("Theme Palette Primary: ", theme.palette.primary)
         }
       >
-        Test
+        Console.log Theme Palette Primary
       </Button>
       <List>
         {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
