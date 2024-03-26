@@ -3,7 +3,6 @@ import express from "express";
 import ReactDomServer from "react-dom/server";
 
 import { ThemeProvider } from "@mui/material/styles";
-import { CacheProvider } from "@emotion/react";
 import createEmotionServer from "@emotion/server/create-instance";
 import createCache from "@emotion/cache";
 import { createTheme } from "@mui/material/styles";
@@ -13,11 +12,10 @@ import { sendHtml } from "../html";
 import Shell from "../components/Shell";
 import Hydrate from "../components/Hydrate";
 
-import List from "../../shared/List";
-import Card from "../../shared/Card";
+import MuiBox from "../../shared/MuiBox";
+import MuiContext from "../../shared/MuiContext";
 
-import { Button, CssBaseline } from "@mui/material";
-import { render } from "react-dom";
+import { CssBaseline as MUICSSBaseline } from "@mui/material";
 
 const mockItems = [
   { name: "Item 1", id: 1 },
@@ -56,46 +54,16 @@ export default express().get("/with-mui", (req, res) => {
     createEmotionServer(cache);
 
   const content = (
-    <CacheProvider value={cache}>
-      <ThemeProvider
-        theme={createTheme({
-          palette: {
-            primary: {
-              main: "#556cd6",
-            },
-            secondary: {
-              main: "#19857b",
-            },
-            error: {
-              main: red.A400,
-            },
-          },
-        })}
-      >
-        <CssBaseline />
-        <Shell>
-          <Button variant="contained">Hello</Button>
-          <Hydrate>
-            {
-              <List>
-                {mockItems.map((item) => (
-                  <Card id={item.id} key={item.id}>
-                    {item.name}
-                  </Card>
-                ))}
-              </List>
-            }
-          </Hydrate>
-        </Shell>
-      </ThemeProvider>
-    </CacheProvider>
+    <Shell>
+      <Hydrate>
+        <MuiContext>
+          <MuiBox />
+        </MuiContext>
+      </Hydrate>
+    </Shell>
   );
 
-  console.log("HELLO 1");
-
   const html = ReactDomServer.renderToString(content);
-
-  console.log("HELLO 2");
 
   const emotionChunks = extractCriticalToChunks(html);
   const emotionCss = constructStyleTagsFromChunks(emotionChunks);

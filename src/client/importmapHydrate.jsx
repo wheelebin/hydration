@@ -2,6 +2,8 @@ import * as ReactDomClient from "react-dom/client";
 import React from "react";
 
 const deserialiseItems = async (item) => {
+  console.log("Deserialising: ", item);
+
   // If is array
   if (Array.isArray(item)) {
     return await Promise.all(item.map((child) => deserialiseItems(child)));
@@ -33,6 +35,8 @@ const deserialiseItems = async (item) => {
   const type = await import(item.type);
   const Component = type.default;
   const props = { ...item.props, children };
+
+  console.log("Deserialised: ", item.type, item);
 
   return <Component {...props} />;
 };
