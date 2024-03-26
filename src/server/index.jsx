@@ -1,11 +1,12 @@
+import React from "react";
 import express from "express";
 import ReactDomServer from "react-dom/server";
-import React from "react";
 
-import List from "../shared/List.jsx";
-import Card from "../shared/Card.jsx";
+import App from "./App";
+import Hydrate from "./Hydrate";
 
-import { getImportMap } from "./importmap.js";
+import List from "../shared/List";
+import Card from "../shared/Card";
 
 const mockItems = [
   { name: "Item 1", id: 1 },
@@ -19,70 +20,6 @@ const mockItems = [
   { name: "Item 9", id: 9 },
   { name: "Item 10", id: 10 },
 ];
-
-// Simple serializer for components
-const serialize = (comp) => {
-  return JSON.stringify(comp, (key, value) => {
-    if (key === "type" && typeof value === "function") {
-      return value.name;
-    }
-    return value;
-  });
-};
-
-const App = ({ state, children }) => {
-  const scripts = [
-    // Import map used by client to hydrate components
-    // Dynamic imports are used to load the components and their dependencies.
-    <script
-      type="importmap"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(getImportMap()) }}
-    />,
-
-    // Client script that hydrates the components
-    <script src="client/importmapHydrate.js" type="module" defer />,
-  ];
-
-  return (
-    <html>
-      <head>
-        {...scripts}
-        <title>App</title>
-      </head>
-      <body
-        style={{
-          width: "100vw",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
-        {children}
-      </body>
-    </html>
-  );
-};
-
-const Hydrate = ({ children }) => {
-  const randomId = Math.random().toString(36).substring(7);
-  const state = {
-    [randomId]: children,
-  };
-
-  return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `window.__STATE__${randomId}__ = ${serialize(state)}`,
-        }}
-      />
-      {/* Hydrated component need root DOM node */}
-      <div id={randomId}>{children}</div>
-    </>
-  );
-};
 
 const app = express();
 
