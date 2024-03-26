@@ -2,7 +2,8 @@ import React from "react";
 import express from "express";
 import ReactDomServer from "react-dom/server";
 
-import App from "../components/App";
+import { sendHtml } from "../html";
+import Shell from "../components/Shell";
 import Hydrate from "../components/Hydrate";
 
 import List from "../../shared/List";
@@ -21,22 +22,10 @@ const mockItems = [
   { name: "Item 10", id: 10 },
 ];
 
-export default express().get("/", (req, res) =>
-  res.send(
-    ReactDomServer.renderToString(
-      <App>
-        <Hydrate>
-          <List>
-            {mockItems.map((item) => (
-              <Card id={item.id} key={item.id}>
-                {item.name}
-              </Card>
-            ))}
-          </List>
-        </Hydrate>
-
-        <h1>The bellow is not hydrated!</h1>
-        <h3>Since it's not wrapped in the hydrate tag.</h3>
+export default express().get("/", (req, res) => {
+  const content = (
+    <Shell>
+      <Hydrate>
         <List>
           {mockItems.map((item) => (
             <Card id={item.id} key={item.id}>
@@ -44,7 +33,20 @@ export default express().get("/", (req, res) =>
             </Card>
           ))}
         </List>
-      </App>
-    )
-  )
-);
+      </Hydrate>
+
+      <h1>The bellow is not hydrated!</h1>
+      <h3>Since it's not wrapped in the hydrate tag.</h3>
+      <List>
+        {mockItems.map((item) => (
+          <Card id={item.id} key={item.id}>
+            {item.name}
+          </Card>
+        ))}
+      </List>
+    </Shell>
+  );
+  sendHtml(res, {
+    content: ReactDomServer.renderToString(content),
+  });
+});

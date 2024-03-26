@@ -5,7 +5,7 @@ import { esbuildPluginFilePathExtensions } from "esbuild-plugin-file-path-extens
 // Build the server
 (async () => {
   const ctx = await context({
-    entryPoints: ["src/server/index.jsx"],
+    entryPoints: ["src/server/index.js"],
     bundle: true,
     outfile: "static/srv.cjs",
     platform: "node",
